@@ -1,0 +1,25 @@
+Abstract
+This paper presents a novel framework for detecting plagiarism and AI-generated content in research papers through semantic analysis and machine learning. We evaluate our approach on arXiv abstracts and benchmark datasets, achieving 85% accuracy. Our results demonstrate the effectiveness of hybrid detection methods combining embeddings with statistical features.
+
+Introduction
+Research integrity is critical to the scientific process. However, plagiarism and AI-generated content pose increasing challenges to academic publishing. We propose VeriPaper, a multi-factor assessment framework that combines semantic plagiarism detection, AI generation probability estimation, and citation validation to produce a comprehensive credibility score. The framework achieves state-of-the-art performance on multiple benchmarks.
+
+Methods
+Our approach consists of four modules. First, we extract semantic embeddings using SBERT and search a FAISS index of arXiv abstracts. Second, we measure perplexity, lexical diversity, and stopword frequency to detect AI-generated text. Third, we validate citations using CrossRef API and check for year mismatches. Fourth, we analyze statistical anomalies including repeated decimals and unrealistic p-values.
+
+Results
+On a test set of 100 papers, our framework achieved 89% accuracy in identifying problematic citations, 76% precision in AI detection, and detected semantic plagiarism with 92% recall. The overall credibility score effectively distinguished authentic from suspicious papers.
+
+Discussion
+The weighted combination of plagiarism, AI probability, and citation validity provides a transparent, explainable assessment of research integrity. While individual modules show promise, ensemble approaches improve robustness. Future work includes fine-tuning on domain-specific datasets and expanding statistical risk detection.
+
+Conclusion
+VeriPaper demonstrates that multi-factor approaches to research authenticity assessment are both feasible and effective. Our framework can support editorial decisions and help researchers improve their work. We make the code and baseline models available for community use.
+
+References
+10.1234/example.doi.1
+This paper introduces novel transformer architectures for document understanding and achieves improvements on standard benchmarks through careful hyperparameter tuning.
+10.5678/another.doi.2
+We conduct extensive experiments and provide comprehensive evaluation metrics including precision, recall, and F1 scores across multiple datasets.
+10.9012/third.doi.3
+The proposed method shows consistent gains and robust performance when evaluated on diverse tasks and settings.
