@@ -7,6 +7,8 @@ RUN apt-get update \
     gfortran \
     libopenblas-dev \
     liblapack-dev \
+    liblapacke-dev \
+    libatlas-base-dev \
     pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
