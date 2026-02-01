@@ -8,7 +8,6 @@ RUN apt-get update \
     libopenblas-dev \
     liblapack-dev \
     liblapacke-dev \
-    libatlas-base-dev \
     pkg-config \
  && rm -rf /var/lib/apt/lists/*
 
