@@ -24,6 +24,11 @@ app.mount("/files", StaticFiles(directory=str(reports_dir)), name="static")
 app.include_router(api_router)
 
 
+@app.get("/")
+async def root():
+    return {"message": "VeriPaper AI Research Authenticity Platform API", "docs": "/docs", "health": "/health"}
+
+
 @app.get("/health")
 def health_check() -> dict:
     return {"status": "ok", "version": "0.1.0"}
