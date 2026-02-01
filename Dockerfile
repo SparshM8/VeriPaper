@@ -21,9 +21,13 @@ WORKDIR /app
 # Copy minimal files first to leverage cache
 COPY requirements.txt runtime.txt pyproject.toml /app/
 
+
 # Upgrade pip and install Python deps
 RUN python -m pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
+
+# Copy the rest of the project
+COPY . /app
 
 # Build frontend
 WORKDIR /app/frontend
@@ -31,9 +35,6 @@ RUN npm install && npm run build
 
 # Go back to app root
 WORKDIR /app
-
-# Copy the rest of the project
-COPY . /app
 
 EXPOSE 8000
 
