@@ -31,7 +31,7 @@ COPY . /app
 
 # Build frontend
 WORKDIR /app/frontend
-RUN npm install && npm run build
+RUN npm ci && npx vite build
 
 # Go back to app root
 WORKDIR /app
