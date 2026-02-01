@@ -21,12 +21,27 @@ reports_dir = Path(__file__).parent.parent.parent / "backend" / "reports"
 reports_dir.mkdir(exist_ok=True)
 app.mount("/files", StaticFiles(directory=str(reports_dir)), name="static")
 
-# Mount frontend static files
+# Mount frontend static files under /static to avoid shadowing API routes
 frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
 if frontend_dir.exists():
-    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
+    app.mount("/static", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
 app.include_router(api_router)
+
+
+@app.get("/")
+def root():
+    """Serve the frontend index if available, otherwise return API info."""
+    index_path = frontend_dir / "index.html"
+    if index_path.exists():
+        from fastapi.responses import FileResponse
+        return FileResponse(str(index_path), media_type="text/html")
+
+    return {
+        "message": "VeriPaper AI Research Authenticity Platform API",
+        "docs": "/docs",
+        "health": "/health",
+    }
 
 
 @app.get("/health")
