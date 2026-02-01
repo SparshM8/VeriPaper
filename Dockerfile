@@ -9,7 +9,12 @@ RUN apt-get update \
     liblapack-dev \
     liblapacke-dev \
     pkg-config \
+    curl \
  && rm -rf /var/lib/apt/lists/*
+
+# Install Node.js
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs
 
 WORKDIR /app
 
@@ -19,6 +24,13 @@ COPY requirements.txt runtime.txt pyproject.toml /app/
 # Upgrade pip and install Python deps
 RUN python -m pip install --upgrade pip setuptools wheel && \
     pip install --no-cache-dir -r requirements.txt
+
+# Build frontend
+WORKDIR /app/frontend
+RUN npm install && npm run build
+
+# Go back to app root
+WORKDIR /app
 
 # Copy the rest of the project
 COPY . /app

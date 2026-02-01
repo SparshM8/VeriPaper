@@ -10,7 +10,7 @@ app = FastAPI(title="VeriPaper API", version="0.1.0")
 # Add CORS middleware BEFORE other routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174", "https://veripaper.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,6 +20,11 @@ app.add_middleware(
 reports_dir = Path(__file__).parent.parent.parent / "backend" / "reports"
 reports_dir.mkdir(exist_ok=True)
 app.mount("/files", StaticFiles(directory=str(reports_dir)), name="static")
+
+# Mount frontend static files
+frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
+if frontend_dir.exists():
+    app.mount("/", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
 app.include_router(api_router)
 
