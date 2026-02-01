@@ -1,0 +1,12 @@
+[tool.poetry]
+name = "veripaper"
+version = "0.1.0"
+description = "VeriPaper AI research authenticity platform"
+authors = ["VeriPaper <maintainer@example.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
