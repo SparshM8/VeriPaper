@@ -61,10 +61,10 @@ cd VeriPaper
 
 ```bash
 # Copy example configuration
-cp backend/.env.example backend\.env
+cp .env.docker.example .env.docker
 
-# Edit backend\.env and set these for production:
-# DB_PASSWORD=your_strong_password_here_min_20_chars
+# Edit .env.docker and set these for production:
+# POSTGRES_PASSWORD=your_strong_password_here_min_20_chars
 # CORS_ORIGINS=https://yourdomain.com
 ```
 
@@ -72,10 +72,10 @@ cp backend/.env.example backend\.env
 
 ```bash
 # Start all services (PostgreSQL, Backend, Frontend)
-docker-compose up -d
+docker compose --env-file .env.docker up -d
 
 # Watch logs
-docker-compose logs -f backend
+docker compose --env-file .env.docker logs -f backend
 ```
 
 #### 4. Test deployment
@@ -104,6 +104,9 @@ bash test-docker.sh
 ```
 VeriPaper/
 ├── docker-compose.yml           # 🐳 Orchestration with PostgreSQL
+├── docker-compose.prod.yml      # 🐳 Production overlay with Nginx
+├── .env.docker.example          # ⚙️ Compose env template
+├── render.yaml                  # ☁️ Render blueprint
 ├── test-docker.bat              # 🧪 Windows test script
 ├── test-docker.sh               # 🧪 Linux/Mac test script
 ├── DEPLOYMENT.md                # 📖 Complete deployment guide
@@ -215,18 +218,18 @@ VeriPaper/
 ### View Logs
 ```bash
 # All services
-docker-compose logs
+docker compose --env-file .env.docker logs
 
 # Specific service
-docker-compose logs -f backend
-docker-compose logs -f postgres
-docker-compose logs -f frontend
+docker compose --env-file .env.docker logs -f backend
+docker compose --env-file .env.docker logs -f postgres
+docker compose --env-file .env.docker logs -f frontend
 ```
 
 ### Database Operations
 ```bash
 # Connect to database
-docker-compose exec postgres psql -U veripaper -d veripaper
+docker compose --env-file .env.docker exec postgres psql -U veripaper -d veripaper
 
 # List tables
 \dt
@@ -240,38 +243,38 @@ docker-compose exec postgres psql -U veripaper -d veripaper
 
 ### Backup Database
 ```bash
-docker-compose exec -T postgres pg_dump -U veripaper veripaper > backup.sql
+docker compose --env-file .env.docker exec -T postgres pg_dump -U veripaper veripaper > backup.sql
 ```
 
 ### Restore Database
 ```bash
-docker-compose exec -T postgres psql -U veripaper veripaper < backup.sql
+docker compose --env-file .env.docker exec -T postgres psql -U veripaper veripaper < backup.sql
 ```
 
 ### Stop Services
 ```bash
 # Stop without removing containers
-docker-compose stop
+docker compose --env-file .env.docker stop
 
 # Stop and remove containers
-docker-compose down
+docker compose --env-file .env.docker down
 
 # Stop and remove everything (including data)
-docker-compose down -v
+docker compose --env-file .env.docker down -v
 ```
 
 ### Restart Services
 ```bash
 # Restart all
-docker-compose restart
+docker compose --env-file .env.docker restart
 
 # Restart specific service
-docker-compose restart backend
+docker compose --env-file .env.docker restart backend
 ```
 
 ### View Service Status
 ```bash
-docker-compose ps
+docker compose --env-file .env.docker ps
 ```
 
 ---
@@ -350,10 +353,10 @@ ports:
 ### Database connection error
 ```bash
 # Wait for PostgreSQL to start
-docker-compose logs postgres
+docker compose --env-file .env.docker logs postgres
 
 # Restart PostgreSQL
-docker-compose restart postgres
+docker compose --env-file .env.docker restart postgres
 ```
 
 ### Frontend API errors
@@ -393,10 +396,10 @@ Key commits in this session:
 For issues or questions:
 
 1. Check [DEPLOYMENT.md](DEPLOYMENT.md) for detailed deployment info
-2. Review logs: `docker-compose logs -f`
-3. Verify services: `docker-compose ps`
+2. Review logs: `docker compose --env-file .env.docker logs -f`
+3. Verify services: `docker compose --env-file .env.docker ps`
 4. Test health: `curl http://localhost:8000/health`
-5. Check database: `docker-compose exec postgres psql -U veripaper -d veripaper -c "\dt"`
+5. Check database: `docker compose --env-file .env.docker exec postgres psql -U veripaper -d veripaper -c "\dt"`
 
 ---
 
