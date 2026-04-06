@@ -105,6 +105,7 @@ bash test-docker.sh
 VeriPaper/
 ├── docker-compose.yml           # 🐳 Orchestration with PostgreSQL
 ├── docker-compose.prod.yml      # 🐳 Production overlay with Nginx
+├── docker-compose.tls.yml       # 🔐 TLS overlay for HTTPS (Nginx + cert mounts)
 ├── .env.docker.example          # ⚙️ Compose env template
 ├── render.yaml                  # ☁️ Render blueprint
 ├── test-docker.bat              # 🧪 Windows test script
@@ -275,6 +276,20 @@ docker compose --env-file .env.docker restart backend
 ### View Service Status
 ```bash
 docker compose --env-file .env.docker ps
+```
+
+### Run with HTTPS (TLS Overlay)
+```bash
+# 1) Configure TLS in .env.docker
+# NGINX_CONF_FILE=./deploy/nginx/default-ssl.conf
+# TLS_CERT_PATH=./deploy/certs/fullchain.pem
+# TLS_KEY_PATH=./deploy/certs/privkey.pem
+
+# 2) Start stack with TLS overlay
+docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.tls.yml up -d
+
+# 3) Check HTTPS health endpoint
+curl -k https://localhost/health
 ```
 
 ---
