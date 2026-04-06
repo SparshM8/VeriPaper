@@ -15,6 +15,28 @@ logger = logging.getLogger(__name__)
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database and verify connectivity."""
+    try:
+        from .core.database import init_db
+        init_db()
+        logger.info("✅ Database initialized successfully")
+    except Exception as e:
+        logger.error(f"❌ Database initialization failed: {e}")
+        # Don't crash the app - allow degraded mode
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """Close database connections on shutdown."""
+    try:
+        from .core.database import close_db
+        close_db()
+        logger.info("✅ Database connections closed")
+    except Exception as e:
+        logger.error(f"⚠️ Error closing database: {e}")
+
 # Add CORS middleware BEFORE other routes
 app.add_middleware(
     CORSMiddleware,

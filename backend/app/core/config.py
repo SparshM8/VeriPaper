@@ -27,5 +27,24 @@ class Settings:
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
 
+    # Database configuration
+    DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
+    DB_USER = os.getenv("DB_USER", "veripaper")
+    DB_PASSWORD = os.getenv("DB_PASSWORD", "")
+    DB_HOST = os.getenv("DB_HOST", "localhost")
+    DB_PORT = os.getenv("DB_PORT", "5432")
+    DB_NAME = os.getenv("DB_NAME", "veripaper")
+    
+    # Derived database URL
+    @property
+    def database_url(self) -> str:
+        if self.DB_ENGINE == "sqlite":
+            db_path = os.getenv("DB_PATH", ":memory:")
+            return f"sqlite:///{db_path}"
+        
+        if self.DB_PASSWORD:
+            return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+        return f"postgresql://{self.DB_USER}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"
+
 
 settings = Settings()
