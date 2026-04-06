@@ -53,6 +53,7 @@ logs/
 frontend/dist/
 backend/models/*.pkl
 backend/models/*.joblib
+reports/*.pdf
 
 # Data files (optional - comment out if you want to include sample data)
 # backend/data/
