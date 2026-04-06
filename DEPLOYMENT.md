@@ -68,6 +68,9 @@ docker compose --env-file .env.docker up -d
 # Start in production reverse-proxy mode (single public entrypoint via Nginx)
 docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.prod.yml up -d
 
+# Start in production HTTPS mode (Nginx TLS on 443)
+docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.tls.yml up -d
+
 # View logs
 docker compose --env-file .env.docker logs -f
 
@@ -133,6 +136,11 @@ docker compose --env-file .env.docker down -v
 - Port: 80 (public)
 - Routes `/` to frontend and `/api`, `/files` to backend
 - Keeps backend/frontend bound to localhost and private network
+
+**Nginx (TLS Overlay)**
+- Port: 443 (public HTTPS)
+- Adds certificate mounts from `TLS_CERT_PATH` and `TLS_KEY_PATH`
+- Uses `deploy/nginx/default-ssl.conf` when `NGINX_CONF_FILE=./deploy/nginx/default-ssl.conf`
 
 ### Network
 
@@ -239,6 +247,39 @@ services:
 ---
 
 ## Troubleshooting
+
+### Enable HTTPS/TLS
+
+1. Set TLS variables in `.env.docker`:
+
+```env
+NGINX_CONF_FILE=./deploy/nginx/default-ssl.conf
+NGINX_HTTPS_PORT=443
+TLS_CERT_PATH=./deploy/certs/fullchain.pem
+TLS_KEY_PATH=./deploy/certs/privkey.pem
+```
+
+2. Provide cert/key files at those paths. For local testing only, you can generate a self-signed cert:
+
+```bash
+mkdir -p deploy/certs
+openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
+  -keyout deploy/certs/privkey.pem \
+  -out deploy/certs/fullchain.pem \
+  -subj "/CN=localhost"
+```
+
+3. Start TLS overlay:
+
+```bash
+docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.prod.yml -f docker-compose.tls.yml up -d
+```
+
+4. Validate HTTPS endpoint:
+
+```bash
+curl -k https://localhost/health
+```
 
 ### PostgreSQL Won't Start
 
@@ -361,6 +402,10 @@ docker compose --env-file .env.docker up -d
 | `MAX_UPLOAD_SIZE_MB` | 15 | Max file upload size |
 | `AI_MODEL_PATH` | /app/models | AI detector model path |
 | `REPORTS_DIR` | /app/reports | PDF reports output directory |
+| `NGINX_CONF_FILE` | ./deploy/nginx/default.conf | Nginx config path mounted into container |
+| `NGINX_HTTPS_PORT` | 443 | HTTPS host port for TLS overlay |
+| `TLS_CERT_PATH` | ./deploy/certs/fullchain.pem | TLS certificate file path |
+| `TLS_KEY_PATH` | ./deploy/certs/privkey.pem | TLS private key file path |
 
 ---
 
