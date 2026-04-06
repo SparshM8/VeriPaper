@@ -65,6 +65,9 @@ docker compose --env-file .env.docker
 # Start all services (PostgreSQL + Backend + Frontend)
 docker compose --env-file .env.docker up -d
 
+# Start in production reverse-proxy mode (single public entrypoint via Nginx)
+docker compose --env-file .env.docker -f docker-compose.yml -f docker-compose.prod.yml up -d
+
 # View logs
 docker compose --env-file .env.docker logs -f
 
@@ -125,6 +128,11 @@ docker compose --env-file .env.docker down -v
 - API Backend: Configured via `VITE_API_BASE_URL` env var
 - Build: Multi-stage Docker build (builder + serve)
 - Depends On: Backend
+
+**Nginx (Production Overlay)**
+- Port: 80 (public)
+- Routes `/` to frontend and `/api`, `/files` to backend
+- Keeps backend/frontend bound to localhost and private network
 
 ### Network
 
