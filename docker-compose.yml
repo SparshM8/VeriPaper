@@ -60,6 +60,7 @@ services:
       - veripaper-network
     command: >
       sh -c "python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      working_dir: /app
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s
