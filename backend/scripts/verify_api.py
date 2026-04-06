@@ -52,8 +52,8 @@ def test_api(file_path: str, api_url: str = "http://localhost:8000"):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print("Usage: python test_api.py <file_path>")
-        print("Example: python test_api.py backend/data/sample_paper.txt")
+        print("Usage: python verify_api.py <file_path>")
+        print("Example: python verify_api.py backend/data/sample_paper.txt")
         sys.exit(1)
     
     success = test_api(sys.argv[1])

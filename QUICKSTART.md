@@ -72,7 +72,7 @@ backend/data/sample_paper.txt
 ### Test with API Script
 ```bash
 cd backend
-python scripts/test_api.py backend/data/sample_paper.txt
+python scripts/verify_api.py backend/data/sample_paper.txt
 ```
 
 ## What Each Score Means

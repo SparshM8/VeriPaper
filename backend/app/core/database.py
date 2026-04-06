@@ -2,14 +2,14 @@
 Database connection management and initialization.
 Handles SQLAlchemy engine, sessions, and migrations.
 """
-import os
 from typing import Generator
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import QueuePool
 import logging
 
-from .database import Base
+from .config import settings
+from ..models.database import Base
 
 logger = logging.getLogger(__name__)
 
@@ -33,23 +33,7 @@ def get_database_url() -> str:
     Production (PostgreSQL):
     - Uses postgresql://user:pass@host:port/dbname
     """
-    engine = os.getenv("DB_ENGINE", "postgresql").lower()
-    
-    if engine == "sqlite":
-        # Development: in-memory SQLite for quick testing
-        db_path = os.getenv("DB_PATH", ":memory:")
-        return f"sqlite:///{db_path}"
-    
-    # Production: PostgreSQL
-    db_user = os.getenv("DB_USER", "veripaper")
-    db_password = os.getenv("DB_PASSWORD", "")
-    db_host = os.getenv("DB_HOST", "localhost")
-    db_port = os.getenv("DB_PORT", "5432")
-    db_name = os.getenv("DB_NAME", "veripaper")
-    
-    if db_password:
-        return f"postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}"
-    return f"postgresql://{db_user}@{db_host}:{db_port}/{db_name}"
+    return settings.database_url
 
 
 def init_db():
@@ -61,14 +45,23 @@ def init_db():
     logger.info(f"Initializing database: {db_url.split('@')[-1] if '@' in db_url else db_url}")
     
     # Create engine with connection pooling for production
-    engine = create_engine(
-        db_url,
-        poolclass=QueuePool,
-        pool_size=5,
-        max_overflow=10,
-        pool_pre_ping=True,  # Verify connections before use
-        echo=os.getenv("SQL_ECHO", "false").lower() == "true"
-    )
+    engine_kwargs = {
+        "pool_pre_ping": True,
+        "echo": False,
+    }
+    if db_url.startswith("sqlite"):
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
+    else:
+        engine_kwargs.update(
+            {
+                "poolclass": QueuePool,
+                "pool_size": 5,
+                "max_overflow": 10,
+                "echo": settings.LOG_LEVEL == "DEBUG",
+            }
+        )
+
+    engine = create_engine(db_url, **engine_kwargs)
     
     # Create all tables
     Base.metadata.create_all(bind=engine)

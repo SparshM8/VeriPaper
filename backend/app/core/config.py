@@ -28,7 +28,8 @@ class Settings:
         return self.ENVIRONMENT == "production"
 
     # Database configuration
-    DB_ENGINE = os.getenv("DB_ENGINE", "postgresql").lower()
+    _default_db_engine = "postgresql" if ENVIRONMENT == "production" else "sqlite"
+    DB_ENGINE = os.getenv("DB_ENGINE", _default_db_engine).lower()
     DB_USER = os.getenv("DB_USER", "veripaper")
     DB_PASSWORD = os.getenv("DB_PASSWORD", "")
     DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -40,7 +41,9 @@ class Settings:
     def database_url(self) -> str:
         if self.DB_ENGINE == "sqlite":
             db_path = os.getenv("DB_PATH", ":memory:")
-            return f"sqlite:///{db_path}"
+            if db_path == ":memory:":
+                return "sqlite:///:memory:"
+            return f"sqlite:///{Path(db_path).resolve()}"
         
         if self.DB_PASSWORD:
             return f"postgresql://{self.DB_USER}:{self.DB_PASSWORD}@{self.DB_HOST}:{self.DB_PORT}/{self.DB_NAME}"

@@ -132,7 +132,7 @@ Interactive Swagger UI at `http://localhost:8000/docs`
 ### Test Integration
 ```bash
 cd backend
-python scripts/test_api.py data/sample_paper.txt
+python scripts/verify_api.py data/sample_paper.txt
 ```
 
 ### Test Frontend
@@ -267,7 +267,7 @@ Backend runs on http://localhost:8000 (API at /api/analyze) and frontend runs on
 ## Testing
 Run the test script to verify the end-to-end pipeline:
 ```bash
-python backend/scripts/test_api.py backend/data/sample_paper.txt
+python backend/scripts/verify_api.py backend/data/sample_paper.txt
 ```
 
 ## Architecture
