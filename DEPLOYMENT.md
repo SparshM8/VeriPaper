@@ -151,7 +151,7 @@ docker compose --env-file .env.docker down -v
 # Tables created by SQLAlchemy ORM models
 
 # View database
-docker-compose exec postgres psql -U veripaper -d veripaper
+docker compose --env-file .env.docker exec postgres psql -U veripaper -d veripaper
 
 # List tables
 \dt
@@ -162,28 +162,28 @@ docker-compose exec postgres psql -U veripaper -d veripaper
 
 ```bash
 # Export database dump
-docker-compose exec postgres pg_dump -U veripaper veripaper > backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose --env-file .env.docker exec postgres pg_dump -U veripaper veripaper > backup_$(date +%Y%m%d_%H%M%S).sql
 
 # Restore from dump
-docker-compose exec -T postgres psql -U veripaper veripaper < backup_20240406_120000.sql
+docker compose --env-file .env.docker exec -T postgres psql -U veripaper veripaper < backup_20240406_120000.sql
 ```
 
 ### View Logs
 
 ```bash
 # Combined logs
-docker-compose logs
+docker compose --env-file .env.docker logs
 
 # Specific service
-docker-compose logs backend
-docker-compose logs postgres
-docker-compose logs frontend
+docker compose --env-file .env.docker logs backend
+docker compose --env-file .env.docker logs postgres
+docker compose --env-file .env.docker logs frontend
 
 # Follow logs (tail -f)
-docker-compose logs -f backend
+docker compose --env-file .env.docker logs -f backend
 
 # Last N lines
-docker-compose logs --tail=50 backend
+docker compose --env-file .env.docker logs --tail=50 backend
 ```
 
 ---
@@ -210,7 +210,7 @@ engine = create_engine(
 
 ### Memory Limits
 
-Add to `docker-compose.yml` for each service:
+Add to `docker-compose.yml` (or `docker-compose.prod.yml`) for each service:
 
 ```yaml
 services:
@@ -244,24 +244,24 @@ services:
 
 ```bash
 # Check logs
-docker-compose logs postgres
+docker compose --env-file .env.docker logs postgres
 
 # If stuck, reset volume
-docker-compose down -v
-docker-compose up postgres
+docker compose --env-file .env.docker down -v
+docker compose --env-file .env.docker up postgres
 ```
 
 ### Backend Can't Connect to Database
 
 ```bash
 # Verify connectivity
-docker-compose exec backend python -c "
+docker compose --env-file .env.docker exec backend python -c "
 from app.core.database import init_db
 init_db()
 "
 
 # Check env vars in running container
-docker-compose exec backend env | grep DB_
+docker compose --env-file .env.docker exec backend env | grep DB_
 ```
 
 ### Frontend Shows API Errors
@@ -271,7 +271,7 @@ docker-compose exec backend env | grep DB_
 curl http://localhost:8000/health
 
 # Verify frontend API URL
-docker-compose exec frontend env | grep VITE_API
+docker compose --env-file .env.docker exec frontend env | grep VITE_API
 
 # Check browser console for CORS errors
 ```
@@ -279,7 +279,7 @@ docker-compose exec frontend env | grep VITE_API
 ### Port Already in Use
 
 ```bash
-# Change ports in docker-compose.yml
+# Change ports in .env.docker or docker-compose.yml
 ports:
   - "8001:8000"  # Backend on 8001 instead
 
@@ -294,7 +294,7 @@ kill -9 <PID>
 
 ### 1. Security
 
-- [ ] Change default DB password in `.env`
+- [ ] Change default DB password in `.env.docker`
 - [ ] Use strong CORS_ORIGINS (whitelist your domain)
 - [ ] Enable HTTPS/SSL with reverse proxy (Nginx/Traefik)
 - [ ] Use secrets management (Docker Secrets, Vault)
@@ -327,7 +327,7 @@ services:
 ```bash
 # Daily backup script
 #!/bin/bash
-docker-compose exec -T postgres pg_dump -U veripaper veripaper | \
+docker compose --env-file .env.docker exec -T postgres pg_dump -U veripaper veripaper | \
   gzip > /backups/veripaper_$(date +\%Y\%m\%d).sql.gz
 ```
 
@@ -335,13 +335,13 @@ docker-compose exec -T postgres pg_dump -U veripaper veripaper | \
 
 ```bash
 # Update base images
-docker-compose pull
+docker compose --env-file .env.docker pull
 
 # Rebuild backend
-docker-compose build --no-cache backend
+docker compose --env-file .env.docker build --no-cache backend
 
 # Restart services
-docker-compose up -d
+docker compose --env-file .env.docker up -d
 ```
 
 ---
@@ -353,12 +353,10 @@ docker-compose up -d
 | `ENVIRONMENT` | development | Set to "production" for prod |
 | `APP_VERSION` | 1.0.0 | API version string |
 | `LOG_LEVEL` | INFO | DEBUG, INFO, WARNING, ERROR |
-| `DB_ENGINE` | postgresql | postgresql or sqlite |
-| `DB_USER` | veripaper | Database user |
-| `DB_PASSWORD` | (empty) | Database password (set in prod!) |
-| `DB_HOST` | localhost | Database host |
-| `DB_PORT` | 5432 | Database port |
-| `DB_NAME` | veripaper | Database name |
+| `POSTGRES_USER` | veripaper | Postgres admin/app user |
+| `POSTGRES_PASSWORD` | change_me_to_a_strong_password | Postgres password |
+| `POSTGRES_DB` | veripaper | Postgres database name |
+| `POSTGRES_PORT` | 5432 | Postgres host port |
 | `CORS_ORIGINS` | localhost:5173 | Comma-separated allowed origins |
 | `MAX_UPLOAD_SIZE_MB` | 15 | Max file upload size |
 | `AI_MODEL_PATH` | /app/models | AI detector model path |
@@ -370,9 +368,9 @@ docker-compose up -d
 
 For issues or questions:
 
-1. Check logs: `docker-compose logs -f`
+1. Check logs: `docker compose --env-file .env.docker logs -f`
 2. Review this guide's Troubleshooting section
-3. Verify all containers are running: `docker-compose ps`
+3. Verify all containers are running: `docker compose --env-file .env.docker ps`
 4. Test connectivity: `curl http://localhost:8000/health`
 
 ---
