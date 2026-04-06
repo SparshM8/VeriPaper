@@ -7,9 +7,11 @@ export default function ScoreGauge({ score, label, color = "#22c55e" }) {
     { name: "Remaining", value: 100 - normalizedScore }
   ];
 
+  const shadowColor = score >= 75 ? "0 4px 15px rgba(16, 185, 129, 0.3)" : score >= 50 ? "0 4px 15px rgba(245, 158, 11, 0.3)" : "0 4px 15px rgba(239, 68, 68, 0.3)";
+
   return (
-    <div className="card text-center">
-      <div style={{ width: "100%", height: "80px" }}>
+    <div className="card-elevated border-0 text-center hover:shadow-lg transition-shadow duration-300" style={{ boxShadow: shadowColor }}>
+      <div style={{ width: "100%", height: "100px" }}>
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -18,8 +20,8 @@ export default function ScoreGauge({ score, label, color = "#22c55e" }) {
               cy="100%"
               startAngle={180}
               endAngle={0}
-              innerRadius={40}
-              outerRadius={60}
+              innerRadius={45}
+              outerRadius={70}
               dataKey="value"
               stroke="none"
             >
@@ -29,11 +31,11 @@ export default function ScoreGauge({ score, label, color = "#22c55e" }) {
           </PieChart>
         </ResponsiveContainer>
       </div>
-      <div className="mt-2">
-        <p className="text-2xl font-bold" style={{ color }}>
+      <div className="mt-3">
+        <p className="text-3xl font-bold transition-all duration-300" style={{ color }}>
           {Math.round(normalizedScore)}%
         </p>
-        <p className="text-xs text-slate-500 mt-1">{label}</p>
+        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mt-2 tracking-wide">{label}</p>
       </div>
     </div>
   );

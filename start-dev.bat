@@ -33,7 +33,7 @@ echo [STEP 1] Starting Backend Server...
 echo --------------------------------
 cd /d "%~dp0backend"
 
-if not exist "venv" (
+ if not exist "venv" (
     echo Creating virtual environment...
     python -m venv venv
     echo.
