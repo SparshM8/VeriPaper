@@ -85,6 +85,97 @@ const buildActionItems = (result) => {
   return items.slice(0, 4);
 };
 
+const summarizeMetric = (type, rawScore, aiConfidence) => {
+  if (type === "plagiarism") {
+    const originality = 100 - rawScore;
+    if (originality >= 85) {
+      return {
+        signal: "Strong originality",
+        tone: "text-emerald-700 dark:text-emerald-300",
+        detail: "Low overlap indicators were found across scanned sections.",
+      };
+    }
+    if (originality >= 65) {
+      return {
+        signal: "Moderate originality",
+        tone: "text-amber-700 dark:text-amber-300",
+        detail: "Some overlapping patterns require manual source comparison.",
+      };
+    }
+    return {
+      signal: "High overlap risk",
+      tone: "text-rose-700 dark:text-rose-300",
+      detail: "Substantial similarity signals suggest elevated reuse risk.",
+    };
+  }
+
+  if (type === "ai") {
+    const humanLikelihood = 100 - rawScore;
+    if (humanLikelihood >= 70) {
+      return {
+        signal: "Human-authorship leaning",
+        tone: "text-emerald-700 dark:text-emerald-300",
+        detail: `Model confidence is ${aiConfidence.toLowerCase()} with low AI-likelihood patterns.`,
+      };
+    }
+    if (humanLikelihood >= 50) {
+      return {
+        signal: "Mixed authorship signal",
+        tone: "text-amber-700 dark:text-amber-300",
+        detail: "Indicators are balanced and require contextual reviewer judgment.",
+      };
+    }
+    return {
+      signal: "AI-assistance likely",
+      tone: "text-rose-700 dark:text-rose-300",
+      detail: `Model confidence is ${aiConfidence.toLowerCase()} with high AI-likelihood patterns.`,
+    };
+  }
+
+  if (type === "citation") {
+    if (rawScore >= 80) {
+      return {
+        signal: "Reference quality strong",
+        tone: "text-emerald-700 dark:text-emerald-300",
+        detail: "Most references follow expected citation and DOI formatting.",
+      };
+    }
+    if (rawScore >= 60) {
+      return {
+        signal: "Reference quality mixed",
+        tone: "text-amber-700 dark:text-amber-300",
+        detail: "Citation consistency is moderate and should be spot-checked.",
+      };
+    }
+    return {
+      signal: "Reference quality weak",
+      tone: "text-rose-700 dark:text-rose-300",
+      detail: "Multiple citation anomalies suggest bibliographic integrity issues.",
+    };
+  }
+
+  const integrity = 100 - rawScore;
+  if (integrity >= 80) {
+    return {
+      signal: "Statistical profile stable",
+      tone: "text-emerald-700 dark:text-emerald-300",
+      detail: "No major p-value or reporting-pattern anomalies were detected.",
+    };
+  }
+  if (integrity >= 60) {
+    return {
+      signal: "Statistical profile watchlist",
+      tone: "text-amber-700 dark:text-amber-300",
+      detail: "Some patterns merit a focused methods and results review.",
+    };
+  }
+  return {
+    signal: "Statistical risk elevated",
+    tone: "text-rose-700 dark:text-rose-300",
+    detail: "Detected patterns indicate higher-than-normal statistical risk.",
+  };
+};
+
 export default function App() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -101,6 +192,16 @@ export default function App() {
   );
 
   const actionItems = useMemo(() => (result ? buildActionItems(result) : []), [result]);
+
+  const keyFindings = useMemo(() => {
+    if (!result) return [];
+    return [
+      summarizeMetric("plagiarism", result.plagiarism_score, result.ai_confidence),
+      summarizeMetric("ai", result.ai_probability, result.ai_confidence),
+      summarizeMetric("citation", result.citation_validity_score, result.ai_confidence),
+      summarizeMetric("statistical", result.statistical_risk_score, result.ai_confidence),
+    ];
+  }, [result]);
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -296,6 +397,18 @@ export default function App() {
                   </div>
                 </div>
 
+                <div className="card-elevated border-0">
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Key Findings</h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {keyFindings.map((item, idx) => (
+                      <div key={idx} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700">
+                        <p className={`text-sm font-semibold ${item.tone}`}>{item.signal}</p>
+                        <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed">{item.detail}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <button onClick={() => downloadPDF(result.report_path)} className="btn-primary font-semibold py-3">Download PDF report</button>
                   <button onClick={() => downloadCSV(result)} className="btn-secondary font-semibold py-3">Export CSV</button>
@@ -420,12 +533,14 @@ function ResultCard({ title, result, type }) {
   }
 
   const displayScore = type === "plagiarism" || type === "statistical" || type === "ai" ? 100 - score : score;
+  const signal = summarizeMetric(type, score, result.ai_confidence);
 
   return (
     <div className="card border-0 p-4">
       <p className="text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400 mb-2">{title.toUpperCase()}</p>
       <p className={`text-2xl font-extrabold ${scoreColor(displayScore)} mb-2`}>{displayScore}%</p>
       <p className="text-xs text-slate-600 dark:text-slate-300 mb-2">{summary}</p>
+      <p className={`text-xs font-semibold mb-2 ${signal.tone}`}>{signal.signal}</p>
       <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{explanation}</p>
     </div>
   );
