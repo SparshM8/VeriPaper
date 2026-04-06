@@ -4,6 +4,8 @@ REM Validates VeriPaper stack deployment
 
 setlocal enabledelayedexpansion
 
+set COMPOSE_CMD=docker compose --env-file .env.docker
+
 echo.
 echo ============================================================
 echo ^<test^> VeriPaper Docker Compose Deployment Test
@@ -20,17 +22,32 @@ if %errorlevel% neq 0 (
 )
 echo [+] Docker found
 
-docker-compose --version >nul 2>&1
+docker compose version >nul 2>&1
 if %errorlevel% neq 0 (
-    echo [-] Docker Compose not installed
+    echo [-] Docker Compose plugin not installed
     exit /b 1
 )
 echo [+] Docker Compose found
 
+if not exist .env.docker (
+    if exist .env.docker.example (
+        copy /Y .env.docker.example .env.docker >nul
+        echo [!] .env.docker created from .env.docker.example - please update credentials
+    ) else (
+        echo [-] Missing .env.docker and .env.docker.example
+        exit /b 1
+    )
+)
+
+for /f "tokens=2 delims==" %%A in ('findstr /B "POSTGRES_USER=" .env.docker') do set POSTGRES_USER=%%A
+for /f "tokens=2 delims==" %%A in ('findstr /B "POSTGRES_DB=" .env.docker') do set POSTGRES_DB=%%A
+if "%POSTGRES_USER%"=="" set POSTGRES_USER=veripaper
+if "%POSTGRES_DB%"=="" set POSTGRES_DB=veripaper
+
 REM Start services
 echo.
 echo [*] Starting Docker Compose stack...
-docker-compose up -d
+%COMPOSE_CMD% up -d
 if %errorlevel% neq 0 (
     echo [-] Failed to start services
     exit /b 1
@@ -44,12 +61,12 @@ timeout /t 30 /nobreak
 REM Test PostgreSQL
 echo.
 echo [*] Testing PostgreSQL...
-docker-compose exec -T postgres pg_isready -U veripaper -d veripaper >nul 2>&1
+%COMPOSE_CMD% exec -T postgres pg_isready -U %POSTGRES_USER% -d %POSTGRES_DB% >nul 2>&1
 if %errorlevel% eq 0 (
     echo [+] PostgreSQL is healthy
 ) else (
     echo [-] PostgreSQL connection failed
-    docker-compose logs postgres
+    %COMPOSE_CMD% logs postgres
     exit /b 1
 )
 
@@ -62,7 +79,7 @@ if "%HTTP_CODE%"=="200" (
     echo [+] Backend health check passed (HTTP %HTTP_CODE%)
 ) else (
     echo [-] Backend health check failed (HTTP %HTTP_CODE%)
-    docker-compose logs backend
+    %COMPOSE_CMD% logs backend
     exit /b 1
 )
 
@@ -80,7 +97,7 @@ if "%READY_CODE%"=="200" (
 REM List running services
 echo.
 echo [*] Running services:
-docker-compose ps
+%COMPOSE_CMD% ps
 
 REM Summary
 echo.
@@ -95,14 +112,14 @@ echo   - Frontend:     http://localhost:3000
 echo   - Database:     localhost:5432 (user: veripaper)
 echo.
 echo Useful commands:
-echo   View logs:        docker-compose logs -f backend
-echo   View all logs:    docker-compose logs -f
-echo   Stop services:    docker-compose stop
-echo   Restart:          docker-compose restart
-echo   Full reset:       docker-compose down -v
+echo   View logs:        %COMPOSE_CMD% logs -f backend
+echo   View all logs:    %COMPOSE_CMD% logs -f
+echo   Stop services:    %COMPOSE_CMD% stop
+echo   Restart:          %COMPOSE_CMD% restart
+echo   Full reset:       %COMPOSE_CMD% down -v
 echo.
 echo Test database schema:
-echo   docker-compose exec postgres psql -U veripaper -d veripaper -c "\dt"
+echo   %COMPOSE_CMD% exec postgres psql -U %POSTGRES_USER% -d %POSTGRES_DB% -c "\dt"
 echo.
 echo [+] Deployment test complete!
 echo.

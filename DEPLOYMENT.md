@@ -24,44 +24,52 @@ cd VeriPaper
 Copy the example environment file:
 
 ```bash
-cp backend/.env.example backend/.env
+cp .env.docker.example .env.docker
 ```
 
-Edit `backend/.env` to set production credentials:
+Edit `.env.docker` to set production credentials:
 
 ```env
+# Compose/Service configuration
 ENVIRONMENT=production
 APP_VERSION=1.0.0
 LOG_LEVEL=INFO
 
-# Database (auto-created by docker-compose)
-DB_ENGINE=postgresql
-DB_USER=veripaper
-DB_PASSWORD=your_strong_password_here_min_20_chars
-DB_HOST=postgres  # Docker service name
-DB_PORT=5432
-DB_NAME=veripaper
+# PostgreSQL (auto-created by docker compose)
+POSTGRES_USER=veripaper
+POSTGRES_PASSWORD=your_strong_password_here_min_20_chars
+POSTGRES_DB=veripaper
+POSTGRES_PORT=5432
+
+# Exposed service ports
+BACKEND_PORT=8000
+FRONTEND_PORT=3000
 
 # API Configuration
 CORS_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 MAX_UPLOAD_SIZE_MB=50
 
-# Security
-AI_MODEL_PATH=/app/models/ai_detector.joblib
-REPORTS_DIR=/app/reports
+# Frontend build-time API endpoint
+VITE_API_BASE_URL=http://localhost:8000/api
+```
+
+Use this command prefix for all compose commands in this guide:
+
+```bash
+docker compose --env-file .env.docker
 ```
 
 ### 3. Launch Stack
 
 ```bash
 # Start all services (PostgreSQL + Backend + Frontend)
-docker-compose up -d
+docker compose --env-file .env.docker up -d
 
 # View logs
-docker-compose logs -f
+docker compose --env-file .env.docker logs -f
 
 # Check service status
-docker-compose ps
+docker compose --env-file .env.docker ps
 ```
 
 ### 4. Verify Deployment
@@ -81,13 +89,13 @@ open http://localhost:3000
 
 ```bash
 # Stop without removing volumes
-docker-compose stop
+docker compose --env-file .env.docker stop
 
 # Stop and remove (keeps database data in named volume)
-docker-compose down
+docker compose --env-file .env.docker down
 
 # Stop and remove everything including data
-docker-compose down -v
+docker compose --env-file .env.docker down -v
 ```
 
 ---
