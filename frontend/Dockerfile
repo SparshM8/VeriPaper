@@ -3,6 +3,9 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
+ARG VITE_API_BASE_URL=http://localhost:8000/api
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+
 # Copy package files
 COPY package.json package-lock.json ./
 
@@ -28,9 +31,6 @@ COPY --from=builder /app/dist ./dist
 
 # Expose port
 EXPOSE 3000
-
-# Set Vite API URL from environment or default
-ENV VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8000/api}
 
 # Start the application
 CMD ["serve", "-s", "dist", "-l", "3000"]
