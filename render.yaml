@@ -1,0 +1,66 @@
+services:
+  - type: pserv
+    name: veripaper-db
+    env: postgresql
+    disk:
+      name: veripaper-db-data
+      sizeGB: 10
+
+  - type: web
+    name: veripaper-api
+    runtime: docker
+    dockerContext: ./backend
+    dockerfilePath: ./backend/Dockerfile
+    autoDeploy: true
+    plan: starter
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: PROJECT_NAME
+        value: VeriPaper API
+      - key: APP_VERSION
+        value: 1.0.0
+      - key: DB_ENGINE
+        value: postgresql
+      - key: DB_HOST
+        fromDatabase:
+          name: veripaper-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: veripaper-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: veripaper-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: veripaper-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: veripaper-db
+          property: password
+      - key: MAX_UPLOAD_SIZE_MB
+        value: 15
+      - key: CORS_ORIGINS
+        value: https://veripaper-frontend.onrender.com
+      - key: AI_MODEL_PATH
+        value: /app/models/ai_detector.joblib
+      - key: REPORTS_DIR
+        value: /app/reports
+    healthCheckPath: /health
+
+  - type: web
+    name: veripaper-frontend
+    runtime: static
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: dist
+    pullRequestPreviewsEnabled: true
+    envVars:
+      - key: VITE_API_BASE_URL
+        value: https://veripaper-api.onrender.com/api
