@@ -12,6 +12,6 @@ scikit-learn==1.5.1
 scipy==1.13.1
 numpy<2
 requests==2.32.3
-reportlab==4.2.2
+reportlab==4.4.0
 sqlalchemy==2.0.32
 psycopg2-binary==2.9.9
