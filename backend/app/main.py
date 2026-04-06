@@ -1,28 +1,36 @@
-from fastapi import FastAPI
+import logging
+
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
-from app.api.routes import router as api_router
+from .api.routes import router as api_router
+from .core.config import settings
+from .core.logging_config import configure_logging
 
-app = FastAPI(title="VeriPaper API", version="0.1.0")
+configure_logging(settings.LOG_LEVEL)
+logger = logging.getLogger(__name__)
+
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
 # Add CORS middleware BEFORE other routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost:5174", "http://127.0.0.1:5174", "https://veripaper.onrender.com"],
+    allow_origins=settings.CORS_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 # Mount static files for PDF reports
-reports_dir = Path(__file__).parent.parent.parent / "backend" / "reports"
+reports_dir = settings.REPORTS_DIR
 reports_dir.mkdir(exist_ok=True)
 app.mount("/files", StaticFiles(directory=str(reports_dir)), name="static")
 
 # Mount frontend static files under /static to avoid shadowing API routes
-frontend_dir = Path(__file__).parent.parent.parent / "frontend" / "dist"
+frontend_dir = settings.ROOT_DIR / "frontend" / "dist"
 if frontend_dir.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_dir), html=True), name="frontend")
 
@@ -46,10 +54,29 @@ def root():
 
 @app.get("/health")
 def health_check() -> dict:
-    return {"status": "ok", "version": "0.1.0"}
+    return {"status": "ok", "version": settings.VERSION, "environment": settings.ENVIRONMENT}
+
+
+@app.get("/ready")
+def readiness_check() -> dict:
+    checks = {
+        "reports_dir_exists": reports_dir.exists(),
+        "model_available": settings.MODEL_PATH.exists(),
+    }
+    ready = all(checks.values())
+    return {"status": "ready" if ready else "degraded", "checks": checks}
 
 
 @app.get("/api/test")
 def test_endpoint() -> dict:
     return {"message": "Backend is working!"}
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(_: Request, exc: Exception):
+    logger.exception("Unhandled server exception", exc_info=exc)
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Internal server error"},
+    )
 

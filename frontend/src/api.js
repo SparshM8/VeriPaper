@@ -1,7 +1,10 @@
 import axios from "axios";
 
+const configuredBase = (import.meta.env.VITE_API_BASE_URL || "").trim();
+const fallbackBase = import.meta.env.DEV ? "http://localhost:8000/api" : "/api";
+
 const api = axios.create({
-  baseURL: "https://veripaper.onrender.com/api",
+  baseURL: configuredBase || fallbackBase,
 });
 
 export async function analyzePaper(file) {

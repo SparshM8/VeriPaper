@@ -6,9 +6,14 @@ export function downloadPDF(reportPath) {
     alert("No PDF report available.");
     return;
   }
+
+  const configuredBase = (import.meta.env.VITE_API_BASE_URL || "").trim();
+  const apiOrigin = configuredBase ? new URL(configuredBase, window.location.origin).origin : window.location.origin;
+  const absoluteReportPath = reportPath.startsWith("http") ? reportPath : `${apiOrigin}${reportPath}`;
+
   const filename = `VeriPaper_Report_${new Date().toISOString().split("T")[0]}.pdf`;
   const link = document.createElement("a");
-  link.href = reportPath;
+  link.href = absoluteReportPath;
   link.download = filename;
   document.body.appendChild(link);
   link.click();

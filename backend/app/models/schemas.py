@@ -3,6 +3,8 @@ from typing import List, Optional
 
 
 class AnalysisResult(BaseModel):
+    filename: str
+    analyzed_at: Optional[str] = None
     plagiarism_score: float = Field(..., ge=0, le=100)
     plagiarism_summary: str
     plagiarism_matches: List["PlagiarismMatch"]

@@ -44,6 +44,33 @@ npm run dev
 
 Visit `http://localhost:5173` and start analyzing!
 
+## 🏭 Production Setup
+
+### Backend Environment
+
+Use `backend/.env.example` as baseline and set:
+
+- `ENVIRONMENT=production`
+- `CORS_ORIGINS=https://your-frontend-domain.com`
+- `MAX_UPLOAD_SIZE_MB=15` (or your preferred limit)
+- `REPORTS_DIR=reports`
+- `AI_MODEL_PATH=models/ai_detector.joblib`
+
+### Frontend Environment
+
+Use `frontend/.env.example` and set:
+
+- `VITE_API_BASE_URL=https://your-api-domain.com/api` (only needed when frontend and backend are on different origins)
+
+### Container Run
+
+```bash
+docker build -t veripaper .
+docker run -p 8000:8000 --env-file backend/.env veripaper
+```
+
+The production container serves API at `/api/*`, reports at `/files/*`, and frontend static files at `/static/*` when built.
+
 ## 📖 Documentation
 
 - **[QUICKSTART.md](QUICKSTART.md)** - 5-minute setup guide (start here!)
@@ -110,6 +137,13 @@ python scripts/test_api.py data/sample_paper.txt
 
 ### Test Frontend
 Visit `http://localhost:5173` and upload a file
+
+### Automated Tests
+```bash
+pytest -q
+```
+
+CI is configured in `.github/workflows/ci.yml` to run backend tests and frontend build on push and pull requests.
 
 ## 🏗️ Project Structure
 
