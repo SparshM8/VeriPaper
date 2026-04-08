@@ -6,17 +6,17 @@ WORKDIR /app
 ARG VITE_API_BASE_URL=http://localhost:8000/api
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
-# Copy package files
+# Copy package files first
 COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
 
-# Build for production
-RUN npm run build
+# Build for production - run vite directly with node
+RUN node node_modules/vite/bin/vite.js build
 
 # Production stage - serve with lightweight HTTP server
 FROM node:18-alpine
